@@ -7,3 +7,18 @@
 }
 
 * { box-sizing: border-box; }
+
+/* Remove background color from React Flow Controls buttons */
+.react-flow__controls button {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.react-flow__controls button:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.dark .react-flow__controls button:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}

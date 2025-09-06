@@ -1,9 +1,16 @@
-import { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
-import { askAI, type ChatMessage, type GraphPayload } from '@/lib/ai';
-import { Send, Paperclip } from 'lucide-react';
-import { useSlots } from '@/store/useSlots';
 import { useLayout } from '@/context/LayoutContext';
+import { askAI, type ChatMessage, type GraphPayload } from '@/lib/ai';
 import { useFlowStore } from '@/store/useFlowStore';
+import { useSlots } from '@/store/useSlots';
+import { Paperclip, Send } from 'lucide-react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 
 interface Props {
   onAIGuidance?: (graph?: GraphPayload, rawText?: string) => void;
@@ -36,27 +43,35 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
   // Auto-scroll to bottom when messages change or loading state changes
   useEffect(() => {
     if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      bottomRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
     }
   }, [messages, loading]);
 
   const handleNewPipeline = useCallback(() => {
     resetFlow();
     setMessages([
-      { 
-        role: 'assistant', 
-        content: 'Starting a new pipeline. What would you like to connect?' 
-      }
+      {
+        role: 'assistant',
+        content: 'Starting a new pipeline. What would you like to connect?',
+      },
     ]);
   }, [resetFlow]);
 
-  const processAIGuidance = useCallback((graph: GraphPayload | undefined, text: string) => {
-    if (graph) {
-      onAIGuidance?.(graph, text);
-    } else if (text.toLowerCase().includes('what would you like to connect')) {
-      resetFlow();
-    }
-  }, [onAIGuidance, resetFlow]);
+  const processAIGuidance = useCallback(
+    (graph: GraphPayload | undefined, text: string) => {
+      if (graph) {
+        onAIGuidance?.(graph, text);
+      } else if (
+        text.toLowerCase().includes('what would you like to connect')
+      ) {
+        resetFlow();
+      }
+    },
+    [onAIGuidance, resetFlow]
+  );
 
   // Helper function to extract key-value pairs
   const kv = (pattern: string, text: string) => {
@@ -70,7 +85,10 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
     const r = new RegExp(`(?:${pattern})\\s*[:=]\\s*([^\\n]+)`, 'i');
     const m = text.match(r);
     if (!m) return undefined;
-    return m[1].split(/[,\s]+/).map((s: string) => s.trim()).filter(Boolean);
+    return m[1]
+      .split(/[,\s]+/)
+      .map((s: string) => s.trim())
+      .filter(Boolean);
   };
 
   // Parse user input to extract key-value pairs for different services
@@ -80,15 +98,31 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
     const shopifyData: Record<string, any> = {};
     const snowflakeData: Record<string, any> = {};
 
-    const shopifyKeys = ['storeUrl', 'clientId', 'clientSecret', 'refreshToken', 'entity', 'fields'];
-    const snowflakeKeys = ['account', 'username', 'password', 'database', 'schema', 'table', 'loadMode', 'key'];
+    const shopifyKeys = [
+      'storeUrl',
+      'clientId',
+      'clientSecret',
+      'refreshToken',
+      'entity',
+      'fields',
+    ];
+    const snowflakeKeys = [
+      'account',
+      'username',
+      'password',
+      'database',
+      'schema',
+      'table',
+      'loadMode',
+      'key',
+    ];
 
-    shopifyKeys.forEach(key => {
+    shopifyKeys.forEach((key) => {
       const value = kv(key, text);
       if (value) shopifyData[key] = value;
     });
 
-    snowflakeKeys.forEach(key => {
+    snowflakeKeys.forEach((key) => {
       const value = kv(key, text);
       if (value) snowflakeData[key] = value;
     });
@@ -98,7 +132,7 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
 
     merge({
       shopify: shopifyData,
-      snowflake: snowflakeData
+      snowflake: snowflakeData,
     });
   }, []);
 
@@ -106,11 +140,15 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
   useEffect(() => {
     if (!hasInitialized && messages.length === 0) {
       const timer = setTimeout(() => {
-        if (!hasInitialized) { // Double check to prevent race condition
-          setMessages([{ 
-            role: 'assistant', 
-            content: 'Hi! Tell me your data flow, e.g., "Connect Shopify orders to Snowflake". I\'ll ask for details and finalize the canvas when ready. You can also say "Create a new pipeline" to start over.' 
-          }]);
+        if (!hasInitialized) {
+          // Double check to prevent race condition
+          setMessages([
+            {
+              role: 'assistant',
+              content:
+                'Hi! Tell me your data flow, e.g., "Connect Shopify orders to Snowflake". I\'ll ask for details and finalize the canvas when ready. You can also say "Create a new pipeline" to start over.',
+            },
+          ]);
           setHasInitialized(true);
         }
       }, 1000); // Increased delay to allow prompt triggering
@@ -119,40 +157,50 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
   }, [hasInitialized, messages.length]);
 
   // Expose triggerAICall method to parent component
-  useImperativeHandle(ref, () => ({
-    triggerAICall: (prompt: string) => {
-      setHasInitialized(true); // Mark as initialized to prevent default message
-      setInput(prompt);
-      const userMsg = prompt.trim();
-      const next = [{ role: 'user', content: userMsg } as const];
-      setMessages(next);
-      
-      // Parse user-provided details into slots (for fallback synthesis)
-      captureSlotsFromText(userMsg);
-      
-      setLoading(true);
-      askAI(next).then(({ text, graph }) => {
-        const newMessage = { role: 'assistant' as const, content: text };
-        setMessages(m => [...m, newMessage]);
-        
-        // Process the AI's response
-        processAIGuidance(graph, text);
-      }).catch((e) => {
-        console.error('AI Error:', e);
-        setMessages(m => [...m, { 
-          role: 'assistant', 
-          content: 'Sorry, I encountered an error. Please try again.' 
-        }]);
-      }).finally(() => {
-        setLoading(false);
-        setInput('');
-      });
-    }
-  }), [messages, captureSlotsFromText, processAIGuidance]);
+  useImperativeHandle(
+    ref,
+    () => ({
+      triggerAICall: (prompt: string) => {
+        setHasInitialized(true); // Mark as initialized to prevent default message
+        setInput(prompt);
+        const userMsg = prompt.trim();
+        const next = [{ role: 'user', content: userMsg } as const];
+        setMessages(next);
+
+        // Parse user-provided details into slots (for fallback synthesis)
+        captureSlotsFromText(userMsg);
+
+        setLoading(true);
+        askAI(next)
+          .then(({ text, graph }) => {
+            const newMessage = { role: 'assistant' as const, content: text };
+            setMessages((m) => [...m, newMessage]);
+
+            // Process the AI's response
+            processAIGuidance(graph, text);
+          })
+          .catch((e) => {
+            console.error('AI Error:', e);
+            setMessages((m) => [
+              ...m,
+              {
+                role: 'assistant',
+                content: 'Sorry, I encountered an error. Please try again.',
+              },
+            ]);
+          })
+          .finally(() => {
+            setLoading(false);
+            setInput('');
+          });
+      },
+    }),
+    [messages, captureSlotsFromText, processAIGuidance]
+  );
 
   async function send() {
     if (!input.trim() || loading) return;
-    
+
     const userMsg = input.trim();
     const next = [...messages, { role: 'user', content: userMsg } as const];
     setMessages(next);
@@ -171,16 +219,19 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
     try {
       const { text, graph } = await askAI(next);
       const newMessage = { role: 'assistant' as const, content: text };
-      setMessages(m => [...m, newMessage]);
-      
+      setMessages((m) => [...m, newMessage]);
+
       // Process the AI's response
       processAIGuidance(graph, text);
     } catch (e) {
       console.error('AI Error:', e);
-      setMessages(m => [...m, { 
-        role: 'assistant', 
-        content: 'Sorry, I encountered an error. Please try again.' 
-      }]);
+      setMessages((m) => [
+        ...m,
+        {
+          role: 'assistant',
+          content: 'Sorry, I encountered an error. Please try again.',
+        },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -209,15 +260,34 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
   }`;
 
   return (
-    <div className="flex h-full flex-col min-h-0">
-      <div className={`flex-1 overflow-hidden flex flex-col min-h-0 ${density === 'compact' ? 'p-2' : 'p-4'}`}>
-        <div className="flex-1 overflow-y-auto overflow-x-hidden pr-1 space-y-4 min-h-0">
+    <div
+      className="flex h-full flex-col min-h-0"
+      role="region"
+      aria-label="Chat conversation"
+    >
+      <div
+        className={`flex-1 overflow-hidden flex flex-col min-h-0 ${density === 'compact' ? 'p-2' : 'p-4'}`}
+      >
+        <div
+          className="flex-1 overflow-y-auto overflow-x-hidden pr-1 space-y-4 min-h-0"
+          role="log"
+          aria-label="Chat messages"
+          aria-live="polite"
+        >
           {messages.map((m, i) => (
-            <div key={i} className="flex w-full">
+            <div
+              key={i}
+              className="flex w-full"
+              role="article"
+              aria-label={`${m.role === 'user' ? 'User' : 'AI Assistant'} message`}
+            >
               <div className={messageClass(m.role === 'user')}>
                 <div className="flex items-start gap-2">
                   {m.role === 'assistant' && (
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-medium">
+                    <div
+                      className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-medium"
+                      aria-label="AI Assistant"
+                    >
                       AI
                     </div>
                   )}
@@ -227,7 +297,10 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
                     </p>
                   </div>
                   {m.role === 'user' && (
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 flex items-center justify-center text-white text-xs font-medium">
+                    <div
+                      className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 flex items-center justify-center text-white text-xs font-medium"
+                      aria-label="User"
+                    >
                       U
                     </div>
                   )}
@@ -236,16 +309,32 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
             </div>
           ))}
           {loading && (
-            <div className="flex w-full">
+            <div
+              className="flex w-full"
+              role="status"
+              aria-label="AI is typing"
+            >
               <div className="mr-auto bg-white/80 text-zinc-900 dark:text-zinc-100 dark:bg-zinc-900/70 border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl rounded-bl-md backdrop-blur-sm px-4 py-3 shadow-sm">
                 <div className="flex items-center gap-2">
-                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-medium">
+                  <div
+                    className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-medium"
+                    aria-label="AI Assistant"
+                  >
                     AI
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div
+                    className="flex items-center gap-1"
+                    aria-label="Typing indicator"
+                  >
                     <div className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div
+                      className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce"
+                      style={{ animationDelay: '0.1s' }}
+                    ></div>
+                    <div
+                      className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce"
+                      style={{ animationDelay: '0.2s' }}
+                    ></div>
                   </div>
                 </div>
               </div>
@@ -254,13 +343,18 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
           <div ref={bottomRef} className="h-4 flex-shrink-0" />
         </div>
 
-        <div className={`border-t border-zinc-200/60 bg-white/60 p-2 backdrop-blur dark:border-zinc-800/60 dark:bg-zinc-950/40 flex-shrink-0 ${
-          density === 'compact' ? 'py-1.5' : 'py-3'
-        }`}>
+        <div
+          className={`border-t border-zinc-200/60 bg-white/60 p-2 backdrop-blur dark:border-zinc-800/60 dark:bg-zinc-950/40 flex-shrink-0 ${
+            density === 'compact' ? 'py-1.5' : 'py-3'
+          }`}
+          role="form"
+          aria-label="Message input form"
+        >
           <div className="group flex w-full items-center gap-2 rounded-xl border border-zinc-200/60 bg-white/70 px-3 py-1.5 shadow-sm backdrop-blur focus-within:ring-2 focus-within:ring-indigo-500/50 dark:border-zinc-800/60 dark:bg-zinc-950/40">
-            <button 
-              className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+            <button
+              className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 outline-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 rounded"
               aria-label="Attach file"
+              tabIndex={0}
             >
               <Paperclip size={18} />
             </button>
@@ -269,11 +363,16 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKey}
               placeholder="Describe your data flow or answer a question…"
-              className={`${inputClass} resize-none`}
+              className={`${inputClass} resize-none outline-none`}
               disabled={loading}
               aria-label="Type your message"
+              aria-describedby="chat-instructions"
               rows={1}
-              style={{ minHeight: '2.5rem', maxHeight: '8rem' }}
+              style={{
+                minHeight: '2.5rem',
+                maxHeight: '8rem',
+                outline: 'none',
+              }}
               onInput={(e) => {
                 const target = e.target as HTMLTextAreaElement;
                 target.style.height = 'auto';
@@ -282,14 +381,22 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
             />
             <button
               onClick={send}
-              className={buttonClass}
+              className={`${buttonClass} ${!input.trim() || loading ? 'opacity-50 cursor-not-allowed' : ''}`}
               disabled={!input.trim() || loading}
-              aria-label="Send message"
+              aria-label={loading ? 'Sending message...' : 'Send message'}
+              aria-describedby="send-button-help"
             >
               <Send size={density === 'compact' ? 14 : 16} />
               {density === 'comfortable' && <span className="ml-1">Send</span>}
             </button>
           </div>
+        </div>
+        <div id="chat-instructions" className="sr-only">
+          Type your message and press Enter to send, or Shift+Enter for a new
+          line.
+        </div>
+        <div id="send-button-help" className="sr-only">
+          {loading ? 'Message is being sent' : 'Click to send your message'}
         </div>
       </div>
     </div>

@@ -1,32 +1,53 @@
-import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Sparkles, Wand2, Stars } from 'lucide-react'
-import { useState } from 'react'
+import { ArrowRight, Sparkles, Stars, Wand2, Zap } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const EXAMPLES = [
   'Connect Shopify to BigQuery',
   'Sync Salesforce contacts to Mailchimp',
   'Stream Stripe payments to Google Sheets',
-  'Connect Shopify orders to Snowflake'
-]
+  'Connect Shopify orders to Snowflake',
+];
 
 export default function Landing() {
-  const nav = useNavigate()
-  const [value, setValue] = useState('')
+  const nav = useNavigate();
+  const [value, setValue] = useState('');
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Allow keyboard navigation through examples
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      const buttons = document.querySelectorAll('[data-example-button]');
+      const currentIndex = Array.from(buttons).findIndex(btn => btn === document.activeElement);
+      
+      if (e.key === 'ArrowDown' && currentIndex < buttons.length - 1) {
+        e.preventDefault();
+        (buttons[currentIndex + 1] as HTMLElement).focus();
+      } else if (e.key === 'ArrowUp' && currentIndex > 0) {
+        e.preventDefault();
+        (buttons[currentIndex - 1] as HTMLElement).focus();
+      }
+    }
+  };
 
   function go(prompt: string) {
-    nav('/studio', { state: { seed: prompt } })
+    nav('/studio', { state: { seed: prompt } });
   }
 
   return (
-    <section className="relative min-h-[88vh] overflow-hidden">
+    <section className="relative min-h-[88vh] overflow-hidden" onKeyDown={handleKeyDown}>
       {/* Background glow orbs */}
       <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-gradient-to-br from-indigo-500/20 via-fuchsia-500/10 to-cyan-500/20 blur-3xl animate-pulse" />
       <div className="pointer-events-none absolute bottom-0 right-0 h-80 w-80 rounded-full bg-gradient-to-tr from-cyan-500/20 via-sky-500/10 to-indigo-500/20 blur-3xl animate-pulse" />
 
       <div className="relative mx-auto max-w-4xl px-4 py-20">
         <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200/50 dark:border-zinc-800/60 bg-white/50 dark:bg-zinc-900/50 px-3 py-1 shadow-sm backdrop-blur">
-          <Sparkles size={14} className="text-indigo-600 dark:text-indigo-400" />
-          <span className="text-xs text-zinc-700 dark:text-zinc-300">AI Data Flow Architect</span>
+          <Sparkles
+            size={14}
+            className="text-indigo-600 dark:text-indigo-400"
+          />
+          <span className="text-xs text-zinc-700 dark:text-zinc-300">
+            AI Data Flow Architect
+          </span>
         </div>
 
         <h1 className="mt-4 text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight">
@@ -35,7 +56,8 @@ export default function Landing() {
           </span>
         </h1>
         <p className="mt-4 text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl">
-          Describe your pipeline and watch it become an interactive flow. Natural language in, production‑ready orchestration out.
+          Describe your pipeline and watch it become an interactive flow.
+          Natural language in, production‑ready orchestration out.
         </p>
 
         {/* Prompt card */}
@@ -53,32 +75,48 @@ export default function Landing() {
               <input
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') go(value) }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') go(value);
+                }}
                 placeholder="e.g., Connect Shopify orders to Snowflake"
-                className="flex-1 bg-transparent outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-600 text-zinc-900 dark:text-zinc-100"
+                className="flex-1 bg-transparent outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-600 text-zinc-900 dark:text-zinc-100 rounded"
                 aria-label="Enter your pipeline prompt"
+                aria-describedby="prompt-instructions"
               />
               <button
                 onClick={() => go(value)}
-                className="ml-3 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 via-fuchsia-600 to-cyan-600 px-4 py-2 text-white shadow-md transition active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/70 hover:brightness-110"
+                className="ml-3 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 via-fuchsia-600 to-cyan-600 px-4 py-2 text-white shadow-md transition active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/70 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!value.trim()}
+                aria-label="Build data pipeline"
               >
                 Build
-                <ArrowRight size={16} className="opacity-90" />
+                <ArrowRight size={16} className="opacity-90" aria-hidden="true" />
               </button>
             </div>
 
             {/* Example options */}
             <div className="mt-5">
-              <div className="text-xs uppercase tracking-wider text-zinc-500 mb-2">Try one</div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {EXAMPLES.map((ex) => (
+              <div className="text-xs uppercase tracking-wider text-zinc-500 mb-2">
+                Try one
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2" role="list" aria-label="Example prompts">
+                {EXAMPLES.map((ex, index) => (
                   <button
                     key={ex}
                     onClick={() => go(ex)}
                     className="relative inline-flex w-full items-center justify-start rounded-xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white/70 dark:bg-zinc-950/40 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                     aria-label={`Use example: ${ex}`}
+                    data-example-button
+                    role="listitem"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        go(ex);
+                      }
+                    }}
                   >
-                    <span className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-500/0 via-fuchsia-500/0 to-cyan-500/0 opacity-0 transition-opacity hover:opacity-20" />
+                    <span className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-500/0 via-fuchsia-500/0 to-cyan-500/0 opacity-0 transition-opacity hover:opacity-20" aria-hidden="true" />
+                    <Zap size={16} className="relative mr-2 text-indigo-500/70 dark:text-indigo-400/70" aria-hidden="true" />
                     <span className="relative truncate">{ex}</span>
                   </button>
                 ))}
@@ -87,11 +125,11 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Subtle footer CTA */}
-        <div className="mt-8 text-xs text-zinc-500">
-          Press Enter to build, or pick an example.
+        {/* Instructions and footer */}
+        <div id="prompt-instructions" className="mt-8 text-xs text-zinc-500">
+          Press Enter to build, or pick an example. Use Tab to navigate between elements.
         </div>
       </div>
     </section>
-  )
+  );
 }

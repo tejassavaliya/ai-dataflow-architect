@@ -1,5 +1,5 @@
 {
-  "name": "nexla-data-flow-architect",
+  "name": "ai-dataflow-architect",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -30,13 +30,14 @@
     "@types/node": "^20.14.12",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/parser": "^5.62.0",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.20",
     "concurrently": "^9.0.1",
-    "eslint": "^8.57.0",
+    "eslint": "^8.57.1",
     "eslint-config-react-app": "^7.0.1",
     "postcss": "^8.4.45",
-    "prettier": "^3.3.3",
+    "prettier": "^3.6.2",
     "tailwindcss": "^3.4.10",
     "typescript": "^5.5.4",
     "vite": "^5.4.2"

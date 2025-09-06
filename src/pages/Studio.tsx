@@ -116,21 +116,47 @@ export default function Studio() {
 
   const { density, setDensity, isPanelOpen, togglePanel } = useLayout();
   const [showSettings, setShowSettings] = useState(false);
-  const isMobile = window.innerWidth < 768; // Simple mobile detection
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [activePanel, setActivePanel] = useState<'chat' | 'canvas' | 'properties'>('canvas');
 
-  // Auto-collapse panels on mobile
+  // Handle window resize for responsive design
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Auto-collapse panels on mobile and manage active panel
   useEffect(() => {
     if (isMobile) {
-      togglePanel("chat");
-      togglePanel("properties");
+      // On mobile, close all panels initially and show only canvas
+      Object.keys(isPanelOpen).forEach(panel => {
+        if (isPanelOpen[panel as keyof typeof isPanelOpen]) {
+          togglePanel(panel as 'chat' | 'canvas' | 'properties');
+        }
+      });
+      // Ensure canvas is open on mobile
+      if (!isPanelOpen.canvas) {
+        togglePanel('canvas');
+      }
     }
   }, [isMobile]);
 
-  const panelClass = (panel: "chat" | "canvas" | "properties") =>
-    `flex flex-col rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 
-    bg-white/70 dark:bg-zinc-950/50 shadow-sm backdrop-blur transition-all duration-200 
-    ${isPanelOpen[panel] ? "flex-1" : "w-12 overflow-hidden min-w-[48px]"}
-    ${density === "compact" ? "text-sm" : "text-base"} h-full min-h-0`;
+  const panelClass = (panel: "chat" | "canvas" | "properties") => {
+    if (isMobile) {
+      return `flex flex-col rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 
+        bg-white/70 dark:bg-zinc-950/50 shadow-sm backdrop-blur transition-all duration-200 
+        ${activePanel === panel ? 'flex-1' : 'hidden'} 
+        ${density === "compact" ? "text-sm" : "text-base"} h-full min-h-0`;
+    }
+    return `flex flex-col rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 
+      bg-white/70 dark:bg-zinc-950/50 shadow-sm backdrop-blur transition-all duration-200 
+      ${isPanelOpen[panel] ? (panel === "properties" ? "flex-[0.5]" : "flex-1") : "w-12 overflow-hidden min-w-[48px]"}
+      ${density === "compact" ? "text-sm" : "text-base"} h-full min-h-0`;
+  };
 
   const headerClass =
     "flex items-center justify-between border-b border-zinc-200/60 dark:border-zinc-800/60 px-4 py-2 bg-white/70 dark:bg-zinc-950/50 backdrop-blur rounded-t-2xl";
@@ -138,103 +164,142 @@ export default function Studio() {
     "p-1.5 rounded-lg hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 transition-colors";
 
   return (
-    <section className="relative h-[calc(100vh-8rem)] flex flex-col">
+    <section className={`relative ${isMobile ? 'h-[calc(100vh-4rem)]' : 'h-[calc(100vh-8rem)]'} flex flex-col`} role="main" aria-label="Data flow studio">
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Subtle background gradient */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(45rem_45rem_at_0%_20%,rgba(99,102,241,0.08),transparent),radial-gradient(40rem_40rem_at_100%_80%,rgba(34,197,94,0.06),transparent)]" />
 
         {/* Settings panel */}
         {showSettings && (
-          <div className="absolute right-4 top-4 z-20 w-64 rounded-xl border border-zinc-200/60 bg-white/90 p-4 shadow-xl backdrop-blur dark:border-zinc-800/60 dark:bg-zinc-900/90">
+          <div className="absolute right-4 top-4 z-20 w-64 rounded-xl border border-zinc-200/60 bg-white/90 p-4 shadow-xl backdrop-blur dark:border-zinc-800/60 dark:bg-zinc-900/90" role="dialog" aria-labelledby="settings-title" aria-modal="true">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-medium">Display Settings</h3>
+              <h3 id="settings-title" className="font-medium">Display Settings</h3>
               <button
                 onClick={() => setShowSettings(false)}
-                className="text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                className="text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 rounded"
+                aria-label="Close settings"
               >
                 <Minus size={18} />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  Density
-                </label>
-                <div className="flex rounded-lg border border-zinc-200 dark:border-zinc-800 p-0.5">
-                  <button
-                    onClick={() => setDensity("comfortable")}
-                    className={`flex-1 rounded-md py-1.5 text-sm transition-colors ${density === "comfortable" ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white" : "text-zinc-600 hover:bg-zinc-100/50 dark:text-zinc-400 dark:hover:bg-zinc-800/50"}`}
-                  >
-                    Comfortable
-                  </button>
-                  <button
-                    onClick={() => setDensity("compact")}
-                    className={`flex-1 rounded-md py-1.5 text-sm transition-colors ${density === "compact" ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white" : "text-zinc-600 hover:bg-zinc-100/50 dark:text-zinc-400 dark:hover:bg-zinc-800/50"}`}
-                  >
-                    Compact
-                  </button>
-                </div>
+                <fieldset>
+                  <legend className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Density
+                  </legend>
+                  <div className="flex rounded-lg border border-zinc-200 dark:border-zinc-800 p-0.5" role="radiogroup" aria-labelledby="density-label">
+                    <button
+                      onClick={() => setDensity("comfortable")}
+                      className={`flex-1 rounded-md py-1.5 text-sm transition-colors focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 ${density === "comfortable" ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white" : "text-zinc-600 hover:bg-zinc-100/50 dark:text-zinc-400 dark:hover:bg-zinc-800/50"}`}
+                      role="radio"
+                      aria-checked={density === "comfortable"}
+                    >
+                      Comfortable
+                    </button>
+                    <button
+                      onClick={() => setDensity("compact")}
+                      className={`flex-1 rounded-md py-1.5 text-sm transition-colors focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 ${density === "compact" ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white" : "text-zinc-600 hover:bg-zinc-100/50 dark:text-zinc-400 dark:hover:bg-zinc-800/50"}`}
+                      role="radio"
+                      aria-checked={density === "compact"}
+                    >
+                      Compact
+                    </button>
+                  </div>
+                </fieldset>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  Panels
-                </label>
-                <div className="space-y-2">
-                  {(["chat", "canvas", "properties"] as const).map((panel) => (
-                    <div
-                      key={panel}
-                      className="flex items-center justify-between"
-                    >
-                      <span className="text-sm capitalize">{panel}</span>
-                      <button
-                        onClick={() => togglePanel(panel)}
-                        className="rounded-md p-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
+                <fieldset>
+                  <legend className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Panels
+                  </legend>
+                  <div className="space-y-2">
+                    {(["chat", "canvas", "properties"] as const).map((panel) => (
+                      <div
+                        key={panel}
+                        className="flex items-center justify-between"
                       >
-                        {isPanelOpen[panel] ? (
-                          <Minimize2 size={16} />
-                        ) : (
-                          <Maximize2 size={16} />
-                        )}
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                        <span className="text-sm capitalize">{panel}</span>
+                        <button
+                          onClick={() => togglePanel(panel)}
+                          className="rounded-md p-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
+                          aria-label={`${isPanelOpen[panel] ? 'Collapse' : 'Expand'} ${panel} panel`}
+                          aria-pressed={isPanelOpen[panel]}
+                        >
+                          {isPanelOpen[panel] ? (
+                            <Minimize2 size={16} aria-hidden="true" />
+                          ) : (
+                            <Maximize2 size={16} aria-hidden="true" />
+                          )}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </fieldset>
               </div>
             </div>
           </div>
         )}
 
-        <div className="relative flex flex-1 gap-2 overflow-hidden min-h-0">
+        {/* Mobile Navigation Bar */}
+        {isMobile && (
+          <div className="flex-shrink-0 flex items-center justify-center gap-1 p-2 bg-white/90 dark:bg-zinc-900/90 backdrop-blur border-b border-zinc-200/60 dark:border-zinc-800/60">
+            {(['chat', 'canvas', 'properties'] as const).map((panel) => (
+              <button
+                key={panel}
+                onClick={() => setActivePanel(panel)}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  activePanel === panel
+                    ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                }`}
+                aria-label={`Switch to ${panel} panel`}
+                aria-pressed={activePanel === panel}
+              >
+                {panel === 'chat' && <PanelLeft size={16} />}
+                {panel === 'canvas' && <Workflow size={16} />}
+                {panel === 'properties' && <SlidersHorizontal size={16} />}
+                <span className="capitalize">{panel}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className={`relative flex flex-1 ${isMobile ? 'flex-col' : 'gap-2'} overflow-hidden min-h-0`} role="application" aria-label="Studio workspace">
           {/* Chat Panel */}
           <div className={panelClass("chat")}>
-            <div className={headerClass}>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => togglePanel("chat")}
-                  className={iconButtonClass}
-                  aria-label={
-                    isPanelOpen.chat ? "Collapse chat" : "Expand chat"
-                  }
-                >
-                  <PanelLeft size={16} className="text-indigo-500" />
-                </button>
+            {!isMobile && (
+              <div className={headerClass}>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => togglePanel("chat")}
+                    className={`${iconButtonClass} focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1`}
+                    aria-label={
+                      isPanelOpen.chat ? "Collapse chat" : "Expand chat"
+                    }
+                    aria-expanded={isPanelOpen.chat}
+                  >
+                    <PanelLeft size={16} className="text-indigo-500" />
+                  </button>
+                  {isPanelOpen.chat && (
+                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+                      Chat
+                    </span>
+                  )}
+                </div>
                 {isPanelOpen.chat && (
-                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
-                    Chat
-                  </span>
+                  <button
+                    onClick={() => setShowSettings(!showSettings)}
+                    className={`${iconButtonClass} focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1`}
+                    aria-label={showSettings ? "Close settings" : "Open settings"}
+                    aria-expanded={showSettings}
+                  >
+                    <Settings size={16} className="text-zinc-500" />
+                  </button>
                 )}
               </div>
-              {isPanelOpen.chat && (
-                <button
-                  onClick={() => setShowSettings(!showSettings)}
-                  className={iconButtonClass}
-                  aria-label="Settings"
-                >
-                  <Settings size={16} className="text-zinc-500" />
-                </button>
-              )}
-            </div>
-            {isPanelOpen.chat && (
+            )}
+            {(isMobile ? activePanel === 'chat' : isPanelOpen.chat) && (
               <div className="flex-1 flex flex-col min-h-0">
                 <Chat onAIGuidance={handleAIGuidance} ref={chatRef} />
               </div>
@@ -243,72 +308,82 @@ export default function Studio() {
 
           {/* Canvas Panel */}
           <div className={panelClass("canvas")}>
-            <div className={headerClass}>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => togglePanel("canvas")}
-                  className={iconButtonClass}
-                  aria-label={
-                    isPanelOpen.canvas ? "Collapse canvas" : "Expand canvas"
-                  }
-                >
-                  <Workflow size={16} className="text-fuchsia-500" />
-                </button>
+            {!isMobile && (
+              <div className={headerClass}>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => togglePanel("canvas")}
+                    className={`${iconButtonClass} focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1`}
+                    aria-label={
+                      isPanelOpen.canvas ? "Collapse canvas" : "Expand canvas"
+                    }
+                    aria-expanded={isPanelOpen.canvas}
+                  >
+                    <Workflow size={16} className="text-fuchsia-500" />
+                  </button>
+                  {isPanelOpen.canvas && (
+                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+                      Canvas
+                    </span>
+                  )}
+                </div>
                 {isPanelOpen.canvas && (
-                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
-                    Canvas
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setShowSettings(!showSettings)}
+                      className={`${iconButtonClass} focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1`}
+                      aria-label={showSettings ? "Close settings" : "Open settings"}
+                      aria-expanded={showSettings}
+                    >
+                      <Settings size={16} className="text-zinc-500" />
+                    </button>
+                  </div>
                 )}
               </div>
-              {isPanelOpen.canvas && (
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setShowSettings(!showSettings)}
-                    className={iconButtonClass}
-                    aria-label="Settings"
-                  >
-                    <Settings size={16} className="text-zinc-500" />
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className="flex-1 flex flex-col min-h-0">
-              <Canvas />
-            </div>
+            )}
+            {(isMobile ? activePanel === 'canvas' : true) && (
+              <div className="flex-1 flex flex-col min-h-0">
+                <Canvas />
+              </div>
+            )}
           </div>
 
           {/* Properties Panel */}
           <div className={panelClass("properties")}>
-            <div className={headerClass}>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => togglePanel("properties")}
-                  className={iconButtonClass}
-                  aria-label={
-                    isPanelOpen.properties
-                      ? "Collapse properties"
-                      : "Expand properties"
-                  }
-                >
-                  <SlidersHorizontal size={16} className="text-cyan-500" />
-                </button>
+            {!isMobile && (
+              <div className={headerClass}>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => togglePanel("properties")}
+                    className={`${iconButtonClass} focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1`}
+                    aria-label={
+                      isPanelOpen.properties
+                        ? "Collapse properties"
+                        : "Expand properties"
+                    }
+                    aria-expanded={isPanelOpen.properties}
+                  >
+                    <SlidersHorizontal size={16} className="text-cyan-500" />
+                  </button>
+                  {isPanelOpen.properties && (
+                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+                      Properties
+                    </span>
+                  )}
+                </div>
                 {isPanelOpen.properties && (
-                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
-                    Properties
-                  </span>
+                  <button
+                    onClick={() => setShowSettings(!showSettings)}
+                    className={`${iconButtonClass} focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1`}
+                    aria-label={showSettings ? "Close settings" : "Open settings"}
+                    aria-expanded={showSettings}
+                  >
+                    <Settings size={16} className="text-zinc-500" />
+                  </button>
                 )}
               </div>
-              {isPanelOpen.properties && (
-                <button
-                  onClick={() => setShowSettings(!showSettings)}
-                  className={iconButtonClass}
-                  aria-label="Settings"
-                >
-                  <Settings size={16} className="text-zinc-500" />
-                </button>
-              )}
-            </div>
-            {isPanelOpen.properties && (
+            )}
+            {(isMobile ? activePanel === 'properties' : isPanelOpen.properties) && (
               <div className="flex-1 flex flex-col min-h-0">
                 <PropertiesPanel />
               </div>
