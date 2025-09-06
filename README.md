@@ -7,6 +7,22 @@ Gemini (via Genkit) powers clarifying questions in the chat to build production-
 > **AI**: Google Gemini 1.5 Flash via Genkit, exposed with a Netlify Function  
 > **Accessibility**: WCAG 2.1 AA compliant with full keyboard navigation and screen reader support
 
+## 🎥 Application Demo
+
+Watch the AI Data Flow Architect in action:
+
+![Demo Video](https://github.com/tejassavaliya/ai-dataflow-architect/tree/master/public/ai-dataflow-architect-demo.mp4)
+
+_The video demonstrates the complete workflow from natural language input to interactive pipeline visualization, showcasing AI-powered conversations and real-time canvas updates._
+
+### What You'll See in the Demo:
+
+- 🗣️ **Natural Language Input**: Enter data flow requirements in plain English
+- 🤖 **AI Conversation**: Interactive chat that asks clarifying questions
+- 🎨 **Live Canvas Updates**: Watch nodes and connections appear in real-time
+- ⚙️ **Property Configuration**: Dynamic property panels for each pipeline component
+- 📱 **Responsive Design**: Seamless experience across desktop and mobile devices
+
 ## Features
 
 - 🤖 **AI-Powered Pipeline Creation**: Natural language to visual data flows
