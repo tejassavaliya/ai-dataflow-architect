@@ -1,4 +1,4 @@
-import { Moon, Sun } from 'lucide-react';
+import { Github, Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { LayoutProvider } from './context/LayoutContext';
@@ -56,6 +56,19 @@ export default function App() {
             >
               Studio
             </Link>
+            <a
+              href="https://github.com/tejassavaliya/ai-dataflow-architect"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View source code on GitHub"
+              className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+              <Github
+                size={18}
+                aria-hidden="true"
+                className="text-zinc-600 dark:text-zinc-400"
+              />
+            </a>
             <button
               onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
               aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
