@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --pane: 320px;
+}
+
+* { box-sizing: border-box; }
