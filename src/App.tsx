@@ -33,7 +33,7 @@ export default function App() {
             className="font-semibold tracking-tight"
             aria-label="AI Data Flow Architect - Home"
           >
-            AI – Data Flow Architect
+            AI Data Flow Architect
           </Link>
           <nav
             className="text-sm flex items-center gap-4"
@@ -98,7 +98,13 @@ export default function App() {
       >
         <div className="max-w-6xl mx-auto px-4">
           <p className="text-center text-xs text-zinc-500">
-            Built with React + TS + Tailwind. AI: Gemini via Genkit.
+            <a
+              href="https://github.com/tejassavaliya/ai-dataflow-architect"
+              target="_blank"
+            >
+              &copy; {new Date().getFullYear()} - AI Data Flow Architect by
+              Tejas Savaliya
+            </a>
           </p>
         </div>
       </footer>
