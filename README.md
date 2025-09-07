@@ -1,7 +1,23 @@
-# AI – Data Flow Architect
+# AI Data Flow Architect
 
-A React + TypeScript + Tailwind app that turns natural‑language data flow prompts into an interactive canvas.
+A React + TypeScript + Tailwind app that turns natural language data flow prompts into an interactive canvas.
 Gemini (via Genkit) powers clarifying questions in the chat to build production-ready data pipelines.
+
+## About This Application
+
+AI Data Flow Architect is an intelligent visual pipeline builder that bridges the gap between business requirements and technical implementation. Instead of manually creating complex data flow diagrams, users can simply describe their data processing needs in plain English, and the AI will generate interactive, configurable pipeline visualizations.
+
+### Key Capabilities
+
+**🧠 Intelligent Pipeline Generation**: Describe your data flow requirements conversationally - "I need to sync Shopify orders to Snowflake and send email notifications" - and watch as the AI creates a complete visual pipeline with all necessary components.
+
+**💬 Interactive AI Assistant**: The built-in chat interface doesn't just generate pipelines; it asks clarifying questions to ensure accuracy, suggests optimizations, and helps refine your data architecture in real-time.
+
+**🎨 Visual Pipeline Editor**: Each generated pipeline appears on an interactive canvas where you can drag, connect, and configure nodes. The visual representation makes complex data flows easy to understand and modify.
+
+**⚙️ Dynamic Configuration**: Every pipeline component comes with a contextual properties panel, allowing you to configure API endpoints, transformation rules, scheduling, and other technical details without writing code.
+
+**🔄 Production-Ready Output**: The generated pipelines aren't just diagrams - they represent real, implementable data architectures with proper error handling, monitoring, and scalability considerations.
 
 > **Stack**: React 18, TypeScript, Tailwind CSS, React Router, Zustand, ReactFlow, Lucide Icons  
 > **AI**: Google Gemini 1.5 Flash via Genkit, exposed with a Netlify Function  
