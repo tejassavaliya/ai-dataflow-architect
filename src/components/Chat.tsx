@@ -2,6 +2,7 @@ import { useLayout } from '@/context/LayoutContext';
 import { askAI, type ChatMessage, type GraphPayload } from '@/lib/ai';
 import { useFlowStore } from '@/store/useFlowStore';
 import { useSlots } from '@/store/useSlots';
+import { UI_TEXT, NEW_PIPELINE_KEYWORDS, SERVICE_KEYS } from '@/constants/text';
 import { Paperclip, Send } from 'lucide-react';
 import {
   forwardRef,
@@ -23,12 +24,7 @@ export interface ChatRef {
 // Check if the message indicates a new pipeline request
 const isNewPipelineRequest = (message: string) => {
   const lower = message.toLowerCase();
-  return (
-    lower.includes('new pipeline') ||
-    lower.includes('create pipeline') ||
-    lower.includes('start over') ||
-    lower.includes('reset flow')
-  );
+  return NEW_PIPELINE_KEYWORDS.some(keyword => lower.includes(keyword));
 };
 
 const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
@@ -55,7 +51,7 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
     setMessages([
       {
         role: 'assistant',
-        content: 'Starting a new pipeline. What would you like to connect?',
+        content: UI_TEXT.CHAT.NEW_PIPELINE_MESSAGE,
       },
     ]);
   }, [resetFlow]);
@@ -98,24 +94,8 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
     const shopifyData: Record<string, any> = {};
     const snowflakeData: Record<string, any> = {};
 
-    const shopifyKeys = [
-      'storeUrl',
-      'clientId',
-      'clientSecret',
-      'refreshToken',
-      'entity',
-      'fields',
-    ];
-    const snowflakeKeys = [
-      'account',
-      'username',
-      'password',
-      'database',
-      'schema',
-      'table',
-      'loadMode',
-      'key',
-    ];
+    const shopifyKeys = SERVICE_KEYS.SHOPIFY;
+    const snowflakeKeys = SERVICE_KEYS.SNOWFLAKE;
 
     shopifyKeys.forEach((key) => {
       const value = kv(key, text);
@@ -145,8 +125,7 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
           setMessages([
             {
               role: 'assistant',
-              content:
-                'Hi! Tell me your data flow, e.g., "Connect Shopify orders to Snowflake". I\'ll ask for details and finalize the canvas when ready. You can also say "Create a new pipeline" to start over.',
+              content: UI_TEXT.CHAT.DEFAULT_MESSAGE,
             },
           ]);
           setHasInitialized(true);
@@ -185,7 +164,7 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
               ...m,
               {
                 role: 'assistant',
-                content: 'Sorry, I encountered an error. Please try again.',
+                content: UI_TEXT.CHAT.ERROR_MESSAGE,
               },
             ]);
           })
@@ -229,7 +208,7 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
         ...m,
         {
           role: 'assistant',
-          content: 'Sorry, I encountered an error. Please try again.',
+          content: UI_TEXT.CHAT.ERROR_MESSAGE,
         },
       ]);
     } finally {
@@ -286,9 +265,9 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
                   {m.role === 'assistant' && (
                     <div
                       className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-medium"
-                      aria-label="AI Assistant"
+                      aria-label={UI_TEXT.COMMON.ACCESSIBILITY.AI_ASSISTANT}
                     >
-                      AI
+                      {UI_TEXT.CHAT.AI_LABEL}
                     </div>
                   )}
                   <div className="flex-1">
@@ -299,9 +278,9 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
                   {m.role === 'user' && (
                     <div
                       className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 flex items-center justify-center text-white text-xs font-medium"
-                      aria-label="User"
+                      aria-label={UI_TEXT.COMMON.ACCESSIBILITY.USER}
                     >
-                      U
+                      {UI_TEXT.CHAT.USER_LABEL}
                     </div>
                   )}
                 </div>
@@ -312,19 +291,19 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
             <div
               className="flex w-full"
               role="status"
-              aria-label="AI is typing"
+              aria-label={UI_TEXT.CHAT.TYPING_INDICATOR}
             >
               <div className="mr-auto bg-white/80 text-zinc-900 dark:text-zinc-100 dark:bg-zinc-900/70 border border-zinc-200/60 dark:border-zinc-800/60 rounded-2xl rounded-bl-md backdrop-blur-sm px-4 py-3 shadow-sm">
                 <div className="flex items-center gap-2">
                   <div
                     className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-medium"
-                    aria-label="AI Assistant"
+                    aria-label={UI_TEXT.COMMON.ACCESSIBILITY.AI_ASSISTANT}
                   >
-                    AI
+                    {UI_TEXT.CHAT.AI_LABEL}
                   </div>
                   <div
                     className="flex items-center gap-1"
-                    aria-label="Typing indicator"
+                    aria-label={UI_TEXT.COMMON.ACCESSIBILITY.TYPING_INDICATOR}
                   >
                     <div className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce"></div>
                     <div
@@ -353,7 +332,7 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
           <div className="group flex w-full items-center gap-2 rounded-xl border border-zinc-200/60 bg-white/70 px-3 py-1.5 shadow-sm backdrop-blur focus-within:ring-2 focus-within:ring-indigo-500/50 dark:border-zinc-800/60 dark:bg-zinc-950/40">
             <button
               className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 outline-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 rounded"
-              aria-label="Attach file"
+              aria-label={UI_TEXT.CHAT.ATTACH_FILE}
               tabIndex={0}
             >
               <Paperclip size={18} />
@@ -362,10 +341,10 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKey}
-              placeholder="Describe your data flow or answer a question…"
+              placeholder={UI_TEXT.CHAT.PLACEHOLDER}
               className={`${inputClass} resize-none outline-none`}
               disabled={loading}
-              aria-label="Type your message"
+              aria-label={UI_TEXT.CHAT.PLACEHOLDER}
               aria-describedby="chat-instructions"
               rows={1}
               style={{
@@ -383,20 +362,19 @@ const Chat = forwardRef<ChatRef, Props>(({ onAIGuidance }, ref) => {
               onClick={send}
               className={`${buttonClass} ${!input.trim() || loading ? 'opacity-50 cursor-not-allowed' : ''}`}
               disabled={!input.trim() || loading}
-              aria-label={loading ? 'Sending message...' : 'Send message'}
+              aria-label={loading ? UI_TEXT.CHAT.SENDING_MESSAGE : UI_TEXT.CHAT.SEND_MESSAGE}
               aria-describedby="send-button-help"
             >
               <Send size={density === 'compact' ? 14 : 16} />
-              {density === 'comfortable' && <span className="ml-1">Send</span>}
+              {density === 'comfortable' && <span className="ml-1">{UI_TEXT.CHAT.SEND_BUTTON}</span>}
             </button>
           </div>
         </div>
         <div id="chat-instructions" className="sr-only">
-          Type your message and press Enter to send, or Shift+Enter for a new
-          line.
+          {UI_TEXT.CHAT.MESSAGE_INSTRUCTIONS}
         </div>
         <div id="send-button-help" className="sr-only">
-          {loading ? 'Message is being sent' : 'Click to send your message'}
+          {loading ? UI_TEXT.CHAT.SENDING_HELP : UI_TEXT.CHAT.SEND_BUTTON_HELP}
         </div>
       </div>
     </div>

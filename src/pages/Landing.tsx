@@ -1,13 +1,7 @@
 import { ArrowRight, Sparkles, Stars, Wand2, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const EXAMPLES = [
-  'Connect Shopify to BigQuery',
-  'Sync Salesforce contacts to Mailchimp',
-  'Stream Stripe payments to Google Sheets',
-  'Connect Shopify orders to Snowflake',
-];
+import { UI_TEXT, EXAMPLE_PROMPTS } from '../constants/text';
 
 export default function Landing() {
   const nav = useNavigate();
@@ -46,18 +40,17 @@ export default function Landing() {
             className="text-indigo-600 dark:text-indigo-400"
           />
           <span className="text-xs text-zinc-700 dark:text-zinc-300">
-            AI Data Flow Architect
+            {UI_TEXT.APP_NAME}
           </span>
         </div>
 
         <h1 className="mt-4 text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight">
           <span className="bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-cyan-500 bg-clip-text text-transparent">
-            Conversational Data Integration
+            {UI_TEXT.LANDING.HERO_TITLE}
           </span>
         </h1>
         <p className="mt-4 text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl">
-          Describe your pipeline and watch it become an interactive flow.
-          Natural language in, production‑ready orchestration out.
+          {UI_TEXT.APP_DESCRIPTION}
         </p>
 
         {/* Prompt card */}
@@ -65,7 +58,7 @@ export default function Landing() {
           <div className="p-3 sm:p-4 border-b border-zinc-200/60 dark:border-zinc-800/60">
             <div className="flex items-center gap-2 text-xs text-zinc-500">
               <Wand2 size={14} />
-              <span>Prompt</span>
+              <span>{UI_TEXT.LANDING.PROMPT_SECTION}</span>
             </div>
           </div>
 
@@ -78,18 +71,18 @@ export default function Landing() {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') go(value);
                 }}
-                placeholder="e.g., Connect Shopify orders to Snowflake"
+                placeholder={UI_TEXT.LANDING.PROMPT_PLACEHOLDER}
                 className="flex-1 bg-transparent outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-600 text-zinc-900 dark:text-zinc-100 rounded"
-                aria-label="Enter your pipeline prompt"
+                aria-label={UI_TEXT.LANDING.PROMPT_PLACEHOLDER}
                 aria-describedby="prompt-instructions"
               />
               <button
                 onClick={() => go(value)}
                 className="ml-3 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 via-fuchsia-600 to-cyan-600 px-4 py-2 text-white shadow-md transition active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/70 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={!value.trim()}
-                aria-label="Build data pipeline"
+                aria-label={`${UI_TEXT.LANDING.BUILD_BUTTON} data pipeline`}
               >
-                Build
+                {UI_TEXT.LANDING.BUILD_BUTTON}
                 <ArrowRight size={16} className="opacity-90" aria-hidden="true" />
               </button>
             </div>
@@ -97,10 +90,10 @@ export default function Landing() {
             {/* Example options */}
             <div className="mt-5">
               <div className="text-xs uppercase tracking-wider text-zinc-500 mb-2">
-                Try one
+                {UI_TEXT.LANDING.TRY_ONE_LABEL}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2" role="list" aria-label="Example prompts">
-                {EXAMPLES.map((ex, index) => (
+                {EXAMPLE_PROMPTS.map((ex, index) => (
                   <button
                     key={ex}
                     onClick={() => go(ex)}
@@ -127,7 +120,7 @@ export default function Landing() {
 
         {/* Instructions and footer */}
         <div id="prompt-instructions" className="mt-8 text-xs text-zinc-500">
-          Press Enter to build, or pick an example. Use Tab to navigate between elements.
+          {UI_TEXT.LANDING.INSTRUCTIONS}
         </div>
       </div>
     </section>

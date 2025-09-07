@@ -7,6 +7,7 @@ import { useFlowStore, FlowNode, FlowEdge } from "@/store/useFlowStore";
 import type { GraphPayload } from "@/lib/ai";
 import { useSlots } from "@/store/useSlots";
 import { useLayout } from "@/context/LayoutContext";
+import { UI_TEXT, DEFAULT_NODES } from "@/constants/text";
 import {
   PanelLeft,
   Minus,
@@ -36,24 +37,17 @@ export default function Studio() {
     const initialNodes: FlowNode[] = [
       {
         id: "src",
-        type: "source",
+        ...DEFAULT_NODES.SOURCE,
         label: titleCase(source),
-        status: "pending",
-        properties: {},
       },
       {
         id: "xform",
-        type: "transform",
-        label: "Transform",
-        status: "pending",
-        properties: {},
+        ...DEFAULT_NODES.TRANSFORM,
       },
       {
         id: "dst",
-        type: "destination",
+        ...DEFAULT_NODES.DESTINATION,
         label: titleCase(destination),
-        status: "pending",
-        properties: {},
       },
     ];
     const initialEdges: FlowEdge[] = [
@@ -164,7 +158,7 @@ export default function Studio() {
     "p-1.5 rounded-lg hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 transition-colors";
 
   return (
-    <section className={`relative ${isMobile ? 'h-[calc(100vh-4rem)]' : 'h-[calc(100vh-8rem)]'} flex flex-col`} role="main" aria-label="Data flow studio">
+    <section className={`relative ${isMobile ? 'h-[calc(100vh-4rem)]' : 'h-[calc(100vh-8rem)]'} flex flex-col`} role="main" aria-label={UI_TEXT.STUDIO.ARIA_LABELS.STUDIO}>
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Subtle background gradient */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(45rem_45rem_at_0%_20%,rgba(99,102,241,0.08),transparent),radial-gradient(40rem_40rem_at_100%_80%,rgba(34,197,94,0.06),transparent)]" />
@@ -173,11 +167,11 @@ export default function Studio() {
         {showSettings && (
           <div className="absolute right-4 top-4 z-20 w-64 rounded-xl border border-zinc-200/60 bg-white/90 p-4 shadow-xl backdrop-blur dark:border-zinc-800/60 dark:bg-zinc-900/90" role="dialog" aria-labelledby="settings-title" aria-modal="true">
             <div className="mb-4 flex items-center justify-between">
-              <h3 id="settings-title" className="font-medium">Display Settings</h3>
+              <h3 id="settings-title" className="font-medium">{UI_TEXT.STUDIO.SETTINGS.TITLE}</h3>
               <button
                 onClick={() => setShowSettings(false)}
                 className="text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 rounded"
-                aria-label="Close settings"
+                aria-label={UI_TEXT.STUDIO.ARIA_LABELS.CLOSE_SETTINGS}
               >
                 <Minus size={18} />
               </button>
@@ -186,7 +180,7 @@ export default function Studio() {
               <div>
                 <fieldset>
                   <legend className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Density
+                    {UI_TEXT.STUDIO.SETTINGS.DENSITY_LABEL}
                   </legend>
                   <div className="flex rounded-lg border border-zinc-200 dark:border-zinc-800 p-0.5" role="radiogroup" aria-labelledby="density-label">
                     <button
@@ -195,7 +189,7 @@ export default function Studio() {
                       role="radio"
                       aria-checked={density === "comfortable"}
                     >
-                      Comfortable
+                      {UI_TEXT.STUDIO.SETTINGS.COMFORTABLE}
                     </button>
                     <button
                       onClick={() => setDensity("compact")}
@@ -203,7 +197,7 @@ export default function Studio() {
                       role="radio"
                       aria-checked={density === "compact"}
                     >
-                      Compact
+                      {UI_TEXT.STUDIO.SETTINGS.COMPACT}
                     </button>
                   </div>
                 </fieldset>
@@ -211,7 +205,7 @@ export default function Studio() {
               <div>
                 <fieldset>
                   <legend className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Panels
+                    {UI_TEXT.STUDIO.SETTINGS.PANELS_LABEL}
                   </legend>
                   <div className="space-y-2">
                     {(["chat", "canvas", "properties"] as const).map((panel) => (
@@ -219,11 +213,11 @@ export default function Studio() {
                         key={panel}
                         className="flex items-center justify-between"
                       >
-                        <span className="text-sm capitalize">{panel}</span>
+                        <span className="text-sm capitalize">{UI_TEXT.STUDIO.PANEL_NAMES[panel.toUpperCase() as keyof typeof UI_TEXT.STUDIO.PANEL_NAMES]}</span>
                         <button
                           onClick={() => togglePanel(panel)}
                           className="rounded-md p-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
-                          aria-label={`${isPanelOpen[panel] ? 'Collapse' : 'Expand'} ${panel} panel`}
+                          aria-label={isPanelOpen[panel] ? UI_TEXT.STUDIO.ARIA_LABELS.COLLAPSE_PANEL.replace('{panel}', panel) : UI_TEXT.STUDIO.ARIA_LABELS.EXPAND_PANEL.replace('{panel}', panel)}
                           aria-pressed={isPanelOpen[panel]}
                         >
                           {isPanelOpen[panel] ? (
@@ -253,19 +247,19 @@ export default function Studio() {
                     ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300'
                     : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
                 }`}
-                aria-label={`Switch to ${panel} panel`}
+                aria-label={UI_TEXT.STUDIO.ARIA_LABELS.SWITCH_TO_PANEL.replace('{panel}', panel)}
                 aria-pressed={activePanel === panel}
               >
                 {panel === 'chat' && <PanelLeft size={16} />}
                 {panel === 'canvas' && <Workflow size={16} />}
                 {panel === 'properties' && <SlidersHorizontal size={16} />}
-                <span className="capitalize">{panel}</span>
+                <span className="capitalize">{UI_TEXT.STUDIO.PANEL_NAMES[panel.toUpperCase() as keyof typeof UI_TEXT.STUDIO.PANEL_NAMES]}</span>
               </button>
             ))}
           </div>
         )}
 
-        <div className={`relative flex flex-1 ${isMobile ? 'flex-col' : 'gap-2'} overflow-hidden min-h-0`} role="application" aria-label="Studio workspace">
+        <div className={`relative flex flex-1 ${isMobile ? 'flex-col' : 'gap-2'} overflow-hidden min-h-0`} role="application" aria-label={UI_TEXT.STUDIO.ARIA_LABELS.WORKSPACE}>
           {/* Chat Panel */}
           <div className={panelClass("chat")}>
             {!isMobile && (
@@ -274,16 +268,14 @@ export default function Studio() {
                   <button
                     onClick={() => togglePanel("chat")}
                     className={`${iconButtonClass} focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1`}
-                    aria-label={
-                      isPanelOpen.chat ? "Collapse chat" : "Expand chat"
-                    }
+                    aria-label={isPanelOpen.chat ? UI_TEXT.STUDIO.ARIA_LABELS.COLLAPSE_PANEL.replace('{panel}', 'chat') : UI_TEXT.STUDIO.ARIA_LABELS.EXPAND_PANEL.replace('{panel}', 'chat')}
                     aria-expanded={isPanelOpen.chat}
                   >
                     <PanelLeft size={16} className="text-indigo-500" />
                   </button>
                   {isPanelOpen.chat && (
                     <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
-                      Chat
+                      {UI_TEXT.STUDIO.PANEL_NAMES.CHAT}
                     </span>
                   )}
                 </div>
@@ -291,7 +283,7 @@ export default function Studio() {
                   <button
                     onClick={() => setShowSettings(!showSettings)}
                     className={`${iconButtonClass} focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1`}
-                    aria-label={showSettings ? "Close settings" : "Open settings"}
+                    aria-label={showSettings ? UI_TEXT.STUDIO.ARIA_LABELS.CLOSE_SETTINGS : UI_TEXT.STUDIO.ARIA_LABELS.OPEN_SETTINGS}
                     aria-expanded={showSettings}
                   >
                     <Settings size={16} className="text-zinc-500" />
@@ -314,16 +306,14 @@ export default function Studio() {
                   <button
                     onClick={() => togglePanel("canvas")}
                     className={`${iconButtonClass} focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1`}
-                    aria-label={
-                      isPanelOpen.canvas ? "Collapse canvas" : "Expand canvas"
-                    }
+                    aria-label={isPanelOpen.canvas ? UI_TEXT.STUDIO.ARIA_LABELS.COLLAPSE_PANEL.replace('{panel}', 'canvas') : UI_TEXT.STUDIO.ARIA_LABELS.EXPAND_PANEL.replace('{panel}', 'canvas')}
                     aria-expanded={isPanelOpen.canvas}
                   >
                     <Workflow size={16} className="text-fuchsia-500" />
                   </button>
                   {isPanelOpen.canvas && (
                     <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
-                      Canvas
+                      {UI_TEXT.STUDIO.PANEL_NAMES.CANVAS}
                     </span>
                   )}
                 </div>
@@ -332,7 +322,7 @@ export default function Studio() {
                     <button
                       onClick={() => setShowSettings(!showSettings)}
                       className={`${iconButtonClass} focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1`}
-                      aria-label={showSettings ? "Close settings" : "Open settings"}
+                      aria-label={showSettings ? UI_TEXT.STUDIO.ARIA_LABELS.CLOSE_SETTINGS : UI_TEXT.STUDIO.ARIA_LABELS.OPEN_SETTINGS}
                       aria-expanded={showSettings}
                     >
                       <Settings size={16} className="text-zinc-500" />
@@ -356,18 +346,14 @@ export default function Studio() {
                   <button
                     onClick={() => togglePanel("properties")}
                     className={`${iconButtonClass} focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1`}
-                    aria-label={
-                      isPanelOpen.properties
-                        ? "Collapse properties"
-                        : "Expand properties"
-                    }
+                    aria-label={isPanelOpen.properties ? UI_TEXT.STUDIO.ARIA_LABELS.COLLAPSE_PANEL.replace('{panel}', 'properties') : UI_TEXT.STUDIO.ARIA_LABELS.EXPAND_PANEL.replace('{panel}', 'properties')}
                     aria-expanded={isPanelOpen.properties}
                   >
                     <SlidersHorizontal size={16} className="text-cyan-500" />
                   </button>
                   {isPanelOpen.properties && (
                     <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
-                      Properties
+                      {UI_TEXT.STUDIO.PANEL_NAMES.PROPERTIES}
                     </span>
                   )}
                 </div>
@@ -375,7 +361,7 @@ export default function Studio() {
                   <button
                     onClick={() => setShowSettings(!showSettings)}
                     className={`${iconButtonClass} focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1`}
-                    aria-label={showSettings ? "Close settings" : "Open settings"}
+                    aria-label={showSettings ? UI_TEXT.STUDIO.ARIA_LABELS.CLOSE_SETTINGS : UI_TEXT.STUDIO.ARIA_LABELS.OPEN_SETTINGS}
                     aria-expanded={showSettings}
                   >
                     <Settings size={16} className="text-zinc-500" />

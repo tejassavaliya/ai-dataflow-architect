@@ -19,6 +19,7 @@ import { Cog, Database, Server, MessageCircle, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useLayout } from '../context/LayoutContext';
 import { FlowNode, NodeStatus, useFlowStore } from '../store/useFlowStore';
+import { UI_TEXT } from '../constants/text';
 
 // Status helper functions
 function getStatusBackground(data: FlowNode) {
@@ -96,13 +97,13 @@ function CustomNode({ data, selected }: { data: any; selected: boolean }) {
           aria-hidden="true"
         >
           {data.type === 'source' && (
-            <Database size={density === 'compact' ? 24 : 28} aria-label="Database source" />
+            <Database size={density === 'compact' ? 24 : 28} aria-label={UI_TEXT.CANVAS.ARIA_LABELS.DATABASE_SOURCE} />
           )}
           {data.type === 'transform' && (
-            <Cog size={density === 'compact' ? 24 : 28} aria-label="Transform operation" />
+            <Cog size={density === 'compact' ? 24 : 28} aria-label={UI_TEXT.CANVAS.ARIA_LABELS.TRANSFORM_OPERATION} />
           )}
           {data.type === 'destination' && (
-            <Server size={density === 'compact' ? 24 : 28} aria-label="Server destination" />
+            <Server size={density === 'compact' ? 24 : 28} aria-label={UI_TEXT.CANVAS.ARIA_LABELS.SERVER_DESTINATION} />
           )}
         </div>
         <div className="min-w-0 flex-1">
@@ -145,7 +146,7 @@ function CustomNode({ data, selected }: { data: any; selected: boolean }) {
           position={Position.Right}
           className="w-3 h-3 bg-indigo-500 border-2 border-white shadow-lg"
           style={{ right: -6 }}
-          aria-label={`Connect from ${data.label}`}
+          aria-label={`${UI_TEXT.CANVAS.CONNECTION_LABELS.CONNECT_FROM} ${data.label}`}
         />
       )}
       {data.type !== 'source' && (
@@ -154,7 +155,7 @@ function CustomNode({ data, selected }: { data: any; selected: boolean }) {
           position={Position.Left}
           className="w-3 h-3 bg-indigo-500 border-2 border-white shadow-lg"
           style={{ left: -6 }}
-          aria-label={`Connect to ${data.label}`}
+          aria-label={`${UI_TEXT.CANVAS.CONNECTION_LABELS.CONNECT_TO} ${data.label}`}
         />
       )}
     </div>
@@ -312,7 +313,7 @@ export default function Canvas() {
     <div 
       className="relative h-full flex flex-col min-h-0 outline-none"
       role="application"
-      aria-label="Data flow canvas"
+      aria-label={UI_TEXT.CANVAS.ARIA_LABELS.CANVAS}
       tabIndex={0}
       onKeyDown={handleCanvasKeyDown}
     >
@@ -324,14 +325,14 @@ export default function Canvas() {
               <MessageCircle size={32} className="text-white" />
             </div>
             <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-              Start Your Data Flow
+              {UI_TEXT.CANVAS.EMPTY_STATE.TITLE}
             </h3>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-              Describe your data integration needs in the chat to begin building your pipeline.
+              {UI_TEXT.CANVAS.EMPTY_STATE.DESCRIPTION}
             </p>
             <div className="flex items-center justify-center gap-2 text-xs text-indigo-600 dark:text-indigo-400">
               <Sparkles size={14} />
-              <span>Try: "Connect Shopify orders to Snowflake"</span>
+              <span>{UI_TEXT.CANVAS.EMPTY_STATE.EXAMPLE_TEXT}</span>
             </div>
           </div>
         </div>
@@ -370,7 +371,7 @@ export default function Canvas() {
           showZoom={true}
           showFitView={true}
           showInteractive={false}
-          aria-label="Canvas controls"
+          aria-label={UI_TEXT.CANVAS.ARIA_LABELS.CONTROLS}
         />
         <MiniMap
           className="bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/60 dark:border-zinc-800/60 rounded-xl shadow-lg backdrop-blur-sm"
@@ -383,11 +384,11 @@ export default function Canvas() {
           maskColor="rgba(0, 0, 0, 0.1)"
           pannable={true}
           zoomable={true}
-          aria-label="Canvas minimap"
+          aria-label={UI_TEXT.CANVAS.ARIA_LABELS.MINIMAP}
         />
       </ReactFlow>
       <div id="canvas-instructions" className="sr-only">
-        Use arrow keys to navigate between nodes. Press Enter or Space to select a node. Press Escape to deselect.
+        {UI_TEXT.CANVAS.NAVIGATION_INSTRUCTIONS}
       </div>
     </div>
   );
