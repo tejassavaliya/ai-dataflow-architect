@@ -11,8 +11,6 @@ Gemini (via Genkit) powers clarifying questions in the chat to build production-
 
 Watch the AI Data Flow Architect in action:
 
-![alt text](public/ai-dataflow-thumbnail.png)
-
 [![Demo Video](./public/ai-dataflow-thumbnail.png)](https://github.com/user-attachments/assets/123bc500-c9ca-438a-9432-71033d2f3ef4)
 
 > 🎬 **Click the thumbnail above to watch the full demo video**
